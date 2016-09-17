@@ -10,7 +10,7 @@ Bosch driver repository: https://github.com/BoschSensortec/BME280_driver
 #Function
 The original Bosch driver is included in this package and it has not been modified in any way. I have only supplied wrapper code which enables compilation with Arduino IDE and provides implementation of Arduino I2C and SPI for the driver.
 
-This driver seems to report slighly different values than some other Arduino BME280 drivers, with difference for temperature being about 0.1 - 0.5 °C. The difference is caused by the driver, however I have not yet figured out which exact part of the code is causing that.
+This driver seems to report slighly different values than some other Arduino BME280 drivers, with the difference for temperature being about 0.1 - 0.5 °C. The difference is caused by the driver, however I have not yet figured out which exact part of the code is causing that.
 
 I tried to compare the temperature with temperature from SMT-172 (sensor with manufacturer declared accuracy +-0.1°C) and the difference caused by the driver meant that the value was closer to what SMT-172 measured, so I assume the Bosch driver is correct.
 
