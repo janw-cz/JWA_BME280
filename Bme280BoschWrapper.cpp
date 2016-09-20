@@ -209,7 +209,7 @@ void Bme280BoschWrapper::SPIInit()
   SPI.begin();
 }
 
-static s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {
 //  Serial.println("I2C_bus_read");
   s8 ret = SUCCESS;
@@ -246,7 +246,7 @@ static s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8
   return ret;
 }
 
-static s8 Bme280BoschWrapper::I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+s8 Bme280BoschWrapper::I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {  
 //  Serial.println("I2C_bus_write");
   s8 ret = SUCCESS;
@@ -262,7 +262,7 @@ static s8 Bme280BoschWrapper::I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u
   return ret;
 }
 
-static s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {
 //  Serial.println("SPI_bus_read");
   s32 ret = SUCCESS;
@@ -288,7 +288,7 @@ static s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8
   return ret;
 }
 
-static s8 Bme280BoschWrapper::SPIWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+s8 Bme280BoschWrapper::SPIWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {
 //  Serial.println("SPI_bus_write");
   s8 ret = SUCCESS;
@@ -315,7 +315,7 @@ static s8 Bme280BoschWrapper::SPIWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u
   return ret;
 }
 
-static void Bme280BoschWrapper::delaymsec(u32 msec)
+void Bme280BoschWrapper::delaymsec(u32 msec)
 {
   delay(msec);
 }
