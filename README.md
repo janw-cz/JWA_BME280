@@ -1,7 +1,7 @@
 # BME280_Bosch_Wrapper
-Arduino driver for BME280 based on original code supplied by Bosch.
+Arduino library for BME280 based on original code supplied by Bosch.
 
-BME280 is very small sensor for measuring air temperature, relative humidity and pressure. It features I2C and SPI connection. https://www.bosch-sensortec.com/bst/products/all_products/bme280
+BME280 is a very small sensor for measuring air temperature, relative humidity and pressure. It features I2C and SPI connection. https://www.bosch-sensortec.com/bst/products/all_products/bme280
 
 This code wraps the original driver from Bosch so that it can be used unmodified with Arduino.
 
