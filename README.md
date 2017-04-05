@@ -15,7 +15,7 @@ This driver seems to report slighly different values than some other Arduino BME
 I tried to compare the temperature with temperature from SMT-172 (sensor with manufacturer declared accuracy +-0.1°C) and the difference caused by the driver meant that the value was closer to what SMT-172 measured, so I assume the Bosch driver is correct.
 
 #Compatibility
-So far I've tested this only with Arduino UNO. Both I2C and SPI are implemented and working on my UNO.
+I have tested this with Arduino UNO. Both I2C and SPI are implemented and working on my UNO. I have received success reports from people using Arduino on various boards based on ESP8266.
 
 If you are able to use this driver with different boards, please let me know.
 
