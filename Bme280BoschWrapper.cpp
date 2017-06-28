@@ -15,12 +15,16 @@ Bme280BoschWrapper::Bme280BoschWrapper(bool forced)
   this->forced = forced;
 }
 
-bool Bme280BoschWrapper::beginI2C(u8 dev_addr)
+bool Bme280BoschWrapper::beginI2C(uint8_t dev_addr)
 {
   I2CInit();
-  bme280.dev_addr = dev_addr;
-  s8 ret = bme280_init(&bme280);
-  return (ret == SUCCESS);
+  bme280.id = dev_addr;
+
+  int8_t ret = bme280_init(&bme280);
+
+  setSensorSettings();
+
+  return (ret == BME280_OK);
 }
 
 bool Bme280BoschWrapper::beginSPI(int8_t cspin)
@@ -30,156 +34,48 @@ bool Bme280BoschWrapper::beginSPI(int8_t cspin)
   SPIInit();
   pinMode(_cs, OUTPUT);
 
-  s8 ret = bme280_init(&bme280);
+  int8_t ret = bme280_init(&bme280);
 
-  return (ret == SUCCESS);
+  setSensorSettings();
+
+  return (ret == BME280_OK);
 }
   
 bool Bme280BoschWrapper::measure()
 {
-  temperature = LONG_MIN;
-  humidity = ULONG_MAX;
-  pressure = ULONG_MAX;
+  int8_t ret = BME280_OK;
 
-  dTemperature = DOUBLE_NOT_CALCULATED;
-  dHumidity = DOUBLE_NOT_CALCULATED;
-  dPressure = DOUBLE_NOT_CALCULATED;
-
-  pressurePrec = ULONG_MAX;
-   
-  s8 ret = SUCCESS;
-
-  ret += bme280_set_oversamp_humidity(BME280_OVERSAMP_16X);
-  ret += bme280_set_oversamp_pressure(BME280_OVERSAMP_16X);
-  ret += bme280_set_oversamp_temperature(BME280_OVERSAMP_16X);
-
-  if(!forced)
+  if(forced)
   {
-    ret += bme280_read_uncomp_pressure_temperature_humidity(&rawPressure, &rawTemperature, &rawHumidity);
+    setSensorSettings();
+    bme280.delay_ms(255);
+    ret += bme280_get_sensor_data(BME280_PRESS | BME280_HUM | BME280_TEMP, &comp_data, &bme280);
   }
   else
   {
-    ret += bme280_get_forced_uncomp_pressure_temperature_humidity(&rawPressure, &rawTemperature, &rawHumidity);
-  } 
-
-  return (ret == SUCCESS);
-}
-
-s32 Bme280BoschWrapper::getRawTemperature()
-{
-  return rawTemperature;
-}
-
-s32 Bme280BoschWrapper::getRawHumidity()
-{
-  return rawHumidity;
-}
-
-s32 Bme280BoschWrapper::getRawPressure()
-{
-  return rawPressure;
-}
-
-s32 Bme280BoschWrapper::getTemperature()
-{
-  if(temperature == LONG_MIN)
-  {
-    temperature = bme280_compensate_temperature_int32(rawTemperature);
-    dTemperature = DOUBLE_NOT_CALCULATED;
+    ret += bme280_get_sensor_data(BME280_PRESS | BME280_HUM | BME280_TEMP, &comp_data, &bme280);
   }
-  
-  return temperature;
+
+  if(ret != BME280_OK) {
+    error = true;
+  }
+
+  return (ret == BME280_OK);
+}
+
+int32_t Bme280BoschWrapper::getTemperature()
+{
+  return comp_data.temperature;
 }
 
 u32 Bme280BoschWrapper::getHumidity()
 {
-  if(humidity == ULONG_MAX)
-  {
-    if(temperature == LONG_MIN)
-    {
-      //temperature calculation prepares value for humidity calculation
-      getTemperature();    
-    }
-  
-    humidity = bme280_compensate_humidity_int32(rawHumidity);
-  }
-  
-  return humidity;
+  return comp_data.humidity;
 }
 
 u32 Bme280BoschWrapper::getPressure()
 {
-  if(pressure == ULONG_MAX)
-  {
-    if(temperature == LONG_MIN)
-    {
-      //temperature calculation prepares value for pressure calculation
-      getTemperature();    
-    }
-  
-    pressure = bme280_compensate_pressure_int32(rawPressure);
-  }
-  
-  return pressure;
-}
-
-double Bme280BoschWrapper::getTemperatureDouble()
-{
-  if(dTemperature == DOUBLE_NOT_CALCULATED)
-  {
-    dTemperature = bme280_compensate_temperature_double(rawTemperature);
-    temperature = LONG_MIN;
-  }
-  
-  return dTemperature;
-}
-
-double Bme280BoschWrapper::getHumidityDouble()
-{
-  if(dHumidity == DOUBLE_NOT_CALCULATED)
-  {
-    if(dTemperature == DOUBLE_NOT_CALCULATED)
-    {
-      //temperature calculation prepares value for humidity calculation
-      getTemperatureDouble();    
-    }
-  
-    dHumidity = bme280_compensate_humidity_double(rawHumidity);
-  }
-
-  return dHumidity;
-}
-
-double Bme280BoschWrapper::getPressureDouble()
-{
-  if(dPressure == DOUBLE_NOT_CALCULATED)
-  {
-    if(dTemperature == DOUBLE_NOT_CALCULATED)
-    {
-      //temperature calculation prepares value for pressure calculation
-      getTemperatureDouble();    
-    }
-  
-    dPressure = bme280_compensate_pressure_double(rawPressure);
-  }
-
-  return dPressure;
-}
-
-u32 Bme280BoschWrapper::getPressurePrec()
-{
-  if(pressurePrec == ULONG_MAX)
-  {
-    if(dTemperature == DOUBLE_NOT_CALCULATED)
-    {
-      //temperature calculation prepares value for pressure calculation
-      getTemperatureDouble();    
-    }
-  
-    pressurePrec = bme280_compensate_pressure_int64(rawPressure);
-  }
-  
-  return pressurePrec;
+  return comp_data.pressure;
 }
 
 /**
@@ -192,27 +88,29 @@ SPISettings bme280SpiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
 
 void Bme280BoschWrapper::I2CInit() 
 {
-  bme280.bus_write = Bme280BoschWrapper::I2CWrite;
-  bme280.bus_read = Bme280BoschWrapper::I2CRead;
-  bme280.dev_addr = BME280_I2C_ADDRESS2;
-  bme280.delay_msec = Bme280BoschWrapper::delaymsec;
+  bme280.interface = BME280_I2C_INTF;
+  bme280.write = Bme280BoschWrapper::I2CWrite;
+  bme280.read = Bme280BoschWrapper::I2CRead;
+  bme280.delay_ms = Bme280BoschWrapper::delaymsec;
 
   Wire.begin();
 }
 
 void Bme280BoschWrapper::SPIInit() 
 {
-  bme280.bus_write = Bme280BoschWrapper::SPIWrite;
-  bme280.bus_read = Bme280BoschWrapper::SPIRead;
-  bme280.delay_msec = Bme280BoschWrapper::delaymsec;
+  bme280.id = 0;
+  bme280.interface = BME280_SPI_INTF;
+  bme280.write = Bme280BoschWrapper::SPIWrite;
+  bme280.read = Bme280BoschWrapper::SPIRead;
+  bme280.delay_ms = Bme280BoschWrapper::delaymsec;
 
   SPI.begin();
 }
 
-s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+int8_t Bme280BoschWrapper::I2CRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
 {
 //  Serial.println("I2C_bus_read");
-  s8 ret = SUCCESS;
+  int8_t ret = BME280_OK;
 
 //  Serial.println(dev_addr, HEX);
   Wire.beginTransmission(dev_addr);
@@ -223,13 +121,13 @@ s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
   
   Wire.requestFrom(dev_addr, cnt);
   
-  u8 available = Wire.available();
+  uint8_t available = Wire.available();
   if(available != cnt)
   {
-    ret = ERROR;
+    ret = BME280_E_COMM_FAIL;
   }
   
-  for(u8 i = 0; i < available; i++)
+  for(uint8_t i = 0; i < available; i++)
   {
     if(i < cnt) 
     {
@@ -246,10 +144,10 @@ s8 Bme280BoschWrapper::I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
   return ret;
 }
 
-s8 Bme280BoschWrapper::I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+int8_t Bme280BoschWrapper::I2CWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
 {  
 //  Serial.println("I2C_bus_write");
-  s8 ret = SUCCESS;
+  int8_t ret = BME280_OK;
 
 //  Serial.println(dev_addr, HEX);
   Wire.beginTransmission(dev_addr);
@@ -262,10 +160,10 @@ s8 Bme280BoschWrapper::I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
   return ret;
 }
 
-s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+int8_t Bme280BoschWrapper::SPIRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
 {
 //  Serial.println("SPI_bus_read");
-  s32 ret = SUCCESS;
+  int32_t ret = BME280_OK;
 
   SPI.beginTransaction(bme280SpiSettings);
   digitalWrite(_cs, LOW);
@@ -273,7 +171,7 @@ s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 //  Serial.println(reg_addr | SPI_READ, HEX);
 
   SPI.transfer(reg_addr | SPI_READ);
-  for (u8 i = BME280_INIT_VALUE; i < cnt; i++) {
+  for (uint8_t i = 0; i < cnt; i++) {
     *(reg_data + i) = SPI.transfer(0);
     
 //    Serial.print(*(reg_data + i), HEX);
@@ -288,17 +186,17 @@ s8 Bme280BoschWrapper::SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
   return ret;
 }
 
-s8 Bme280BoschWrapper::SPIWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
+int8_t Bme280BoschWrapper::SPIWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
 {
 //  Serial.println("SPI_bus_write");
-  s8 ret = SUCCESS;
+  int8_t ret = BME280_OK;
 
   SPI.beginTransaction(bme280SpiSettings);
   digitalWrite(_cs, LOW);
-  for (u8 i = 0; i < cnt; i++) 
+  for (uint8_t i = 0; i < cnt; i++) 
   {
-    u8 addr = (reg_addr++) & SPI_WRITE;
-    u8 data = *(reg_data + i);
+    uint8_t addr = (reg_addr++) & SPI_WRITE;
+    uint8_t data = *(reg_data + i);
 
 //    Serial.print(addr, HEX);
 //    Serial.print(" ");
@@ -320,3 +218,24 @@ void Bme280BoschWrapper::delaymsec(u32 msec)
   delay(msec);
 }
 
+int8_t Bme280BoschWrapper::setSensorSettings()
+{
+  int8_t ret = BME280_OK;
+
+  uint8_t settings_sel;
+
+  bme280.settings.osr_h = BME280_OVERSAMPLING_16X;
+  bme280.settings.osr_p = BME280_OVERSAMPLING_16X;
+  bme280.settings.osr_t = BME280_OVERSAMPLING_16X;
+
+  settings_sel = BME280_OSR_PRESS_SEL|BME280_OSR_TEMP_SEL|BME280_OSR_HUM_SEL;
+
+  ret += bme280_set_sensor_settings(settings_sel, &bme280);
+
+  if(forced)
+    ret += bme280_set_sensor_mode(BME280_FORCED_MODE, &bme280);
+  else
+    ret += bme280_set_sensor_mode(BME280_NORMAL_MODE, &bme280);
+
+  return ret;
+}

@@ -1,13 +1,7 @@
 #ifndef __BMP280_BW_H__
 #define __BMP280_BW_H__
 
-extern "C" {        
-#define __STDC_VERSION__ 201112L
-#define uint16_t unsigned short 
 #include <bme280.h>
-#undef __STDC_VERSION__ 
-#undef uint16_t
-}
 
 class Bme280BoschWrapper
 {
@@ -16,7 +10,7 @@ class Bme280BoschWrapper
     //false: uses continuous measuring mode
     Bme280BoschWrapper(bool forcedMode);
 
-    bool beginI2C(u8 dev_addr = 0x77);
+    bool beginI2C(uint8_t dev_addr = 0x77);
     bool beginSPI(int8_t cspin);
 
     //this method performs measurement
@@ -24,62 +18,32 @@ class Bme280BoschWrapper
     bool measure();
 
     //Temperature in degrees of Celsius * 100
-    s32 getTemperature();
+    int32_t getTemperature();
 
     //Relative humidity in % * 1024
-    u32 getHumidity();
+    uint32_t getHumidity();
 
     //Air pressure in Pa
-    u32 getPressure();
-
-    //double calculations are more CPU intensive
-    //Temperature in degrees of Celsius
-    double getTemperatureDouble();
-
-    //Relative humidity in %
-    double getHumidityDouble();
-
-    //Air pressure in Pa
-    double getPressureDouble();
-
-    //Air pressure in Pa * 256
-    u32 getPressurePrec();
-
-    //Raw values as returned from sensor
-    //without calculation into any specific scale
-    s32 getRawTemperature();
-    s32 getRawHumidity();
-    s32 getRawPressure();
+    uint32_t getPressure();
 
   private:
     void I2CInit();
     void SPIInit();
+    int8_t setSensorSettings();
   
-    static s8 I2CRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
-    static s8 I2CWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
-    static s8 SPIRead(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
-    static s8 SPIWrite(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
-    static void delaymsec(u32 msec);
+    static int8_t I2CRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
+    static int8_t I2CWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
+    static int8_t SPIRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
+    static int8_t SPIWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
+    static void delaymsec(uint32_t msec);
 
     static int _cs;
 
-    s32 rawTemperature;
-    s32 rawHumidity;
-    s32 rawPressure;
-
-    s32 temperature;
-    u32 humidity;
-    u32 pressure;
-
-    double dTemperature;
-    double dPressure;
-    double dHumidity;
-
-    u32 pressurePrec;
-
-    struct bme280_t bme280;
+    struct bme280_dev bme280;
+    struct bme280_data comp_data;
 
     bool forced;
+    bool error = false;
 };
 
 #endif
