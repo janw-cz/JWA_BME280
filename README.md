@@ -1,5 +1,8 @@
 # BME280_Bosch_Wrapper
 
+## News 21-7-2017
+Updated BME280 driver to version 3.3.0.
+
 ## News 28-6-2017
 Updated BME280 driver to version 3.2.0.
 * int humidity is now returned in 1/1000% (previous version used 1/1024%)
