@@ -18,7 +18,7 @@ Bme280BoschWrapper::Bme280BoschWrapper(bool forced)
 bool Bme280BoschWrapper::beginI2C(uint8_t dev_addr)
 {
   I2CInit();
-  bme280.id = dev_addr;
+  bme280.dev_id = dev_addr;
 
   int8_t ret = bme280_init(&bme280);
 
@@ -88,7 +88,7 @@ SPISettings bme280SpiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
 
 void Bme280BoschWrapper::I2CInit() 
 {
-  bme280.interface = BME280_I2C_INTF;
+  bme280.intf = BME280_I2C_INTF;
   bme280.write = Bme280BoschWrapper::I2CWrite;
   bme280.read = Bme280BoschWrapper::I2CRead;
   bme280.delay_ms = Bme280BoschWrapper::delaymsec;
@@ -98,8 +98,8 @@ void Bme280BoschWrapper::I2CInit()
 
 void Bme280BoschWrapper::SPIInit() 
 {
-  bme280.id = 0;
-  bme280.interface = BME280_SPI_INTF;
+  bme280.dev_id = 0;
+  bme280.intf = BME280_SPI_INTF;
   bme280.write = Bme280BoschWrapper::SPIWrite;
   bme280.read = Bme280BoschWrapper::SPIRead;
   bme280.delay_ms = Bme280BoschWrapper::delaymsec;
