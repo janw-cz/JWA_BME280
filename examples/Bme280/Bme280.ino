@@ -22,7 +22,7 @@ void loop() {
     Serial.print(bme280.getTemperature() / 100.0);
     Serial.println(" [C]");
     Serial.print("Humidity: ");
-    Serial.print(bme280.getHumidity() / 1000.0);
+    Serial.print(bme280.getHumidity() / 1024.0);
     Serial.println(" [%]");
     Serial.print("Pressure: ");
     Serial.print(bme280.getPressure());
