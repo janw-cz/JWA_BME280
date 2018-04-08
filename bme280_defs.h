@@ -107,7 +107,7 @@
 
 #ifndef BME280_FLOAT_ENABLE
 #ifndef BME280_64BIT_ENABLE
-#define BME280_64BIT_ENABLE
+//#define BME280_64BIT_ENABLE
 #endif
 #endif
 
