@@ -1,4 +1,7 @@
 # BME280_Bosch_Wrapper
+## News 27-3-2020
+Updated BME280 driver to version 3.4.3.
+
 ## News 1-4-2018
 Updated BME280 driver to version 3.3.4.
 
