@@ -1,3 +1,7 @@
+#define BME280_32BIT_ENABLE
+//#define BME280_64BIT_ENABLE
+//#define BME280_FLOAT_ENABLE
+
 /**
 * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
 *

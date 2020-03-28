@@ -1,10 +1,6 @@
 #ifndef __BMP280_BW_H__
 #define __BMP280_BW_H__
 
-#define BME280_32BIT_ENABLE
-//#define BME280_64BIT_ENABLE
-//#define BME280_FLOAT_ENABLE
-
 #include <bme280.h>
 
 class Bme280BoschWrapper
