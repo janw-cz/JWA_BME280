@@ -68,12 +68,12 @@ int32_t Bme280BoschWrapper::getTemperature()
   return comp_data.temperature;
 }
 
-u32 Bme280BoschWrapper::getHumidity()
+uint32_t Bme280BoschWrapper::getHumidity()
 {
   return comp_data.humidity;
 }
 
-u32 Bme280BoschWrapper::getPressure()
+uint32_t Bme280BoschWrapper::getPressure()
 {
   return comp_data.pressure;
 }
@@ -213,7 +213,7 @@ int8_t Bme280BoschWrapper::SPIWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t 
   return ret;
 }
 
-void Bme280BoschWrapper::delaymsec(u32 msec)
+void Bme280BoschWrapper::delaymsec(uint32_t msec)
 {
   delay(msec);
 }
