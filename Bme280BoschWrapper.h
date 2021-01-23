@@ -31,10 +31,10 @@ class Bme280BoschWrapper
     void SPIInit();
     int8_t setSensorSettings();
   
-    static int8_t I2CRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
-    static int8_t I2CWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
-    static int8_t SPIRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
-    static int8_t SPIWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt);
+    static int8_t I2CRead(uint8_t reg_addr, uint8_t *reg_data, uint32_t cnt, void *intf_ptr);
+    static int8_t I2CWrite(uint8_t reg_addr, const uint8_t *reg_data, uint32_t cnt, void *intf_ptr);
+    static int8_t SPIRead(uint8_t reg_addr, uint8_t *reg_data, uint32_t cnt, void *intf_ptr);
+    static int8_t SPIWrite(uint8_t reg_addr, const uint8_t *reg_data, uint32_t cnt, void *intf_ptr);
     static void delaymsec(uint32_t msec);
 
     static int _cs;

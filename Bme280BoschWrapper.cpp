@@ -17,8 +17,13 @@ Bme280BoschWrapper::Bme280BoschWrapper(bool forced)
 
 bool Bme280BoschWrapper::beginI2C(uint8_t dev_addr)
 {
+  static uint8_t dev_addr_place;
+
   I2CInit();
-  bme280.dev_id = dev_addr;
+
+  dev_addr_place = dev_addr;
+  bme280.intf_ptr = &dev_addr_place;
+  bme280.intf = BME280_I2C_INTF;
 
   int8_t ret = bme280_init(&bme280);
 
@@ -29,7 +34,13 @@ bool Bme280BoschWrapper::beginI2C(uint8_t dev_addr)
 
 bool Bme280BoschWrapper::beginSPI(int8_t cspin)
 {
+  static uint8_t dev_addr_place;
+
   Bme280BoschWrapper::_cs = cspin;
+
+  dev_addr_place = 0;
+  bme280.intf_ptr = &dev_addr_place;
+  bme280.intf = BME280_SPI_INTF;
 
   SPIInit();
   pinMode(_cs, OUTPUT);
@@ -48,7 +59,8 @@ bool Bme280BoschWrapper::measure()
   if(forced)
   {
     setSensorSettings();
-    bme280.delay_ms(255);
+    uint32_t tmpDelay = bme280_cal_meas_delay(&(bme280.settings));
+    Bme280BoschWrapper::delaymsec(tmpDelay);
     ret += bme280_get_sensor_data(BME280_PRESS | BME280_HUM | BME280_TEMP, &comp_data, &bme280);
   }
   else
@@ -91,24 +103,24 @@ void Bme280BoschWrapper::I2CInit()
   bme280.intf = BME280_I2C_INTF;
   bme280.write = Bme280BoschWrapper::I2CWrite;
   bme280.read = Bme280BoschWrapper::I2CRead;
-  bme280.delay_ms = Bme280BoschWrapper::delaymsec;
+  bme280.delay_us = Bme280BoschWrapper::delaymsec;
 
   Wire.begin();
 }
 
 void Bme280BoschWrapper::SPIInit() 
 {
-  bme280.dev_id = 0;
   bme280.intf = BME280_SPI_INTF;
   bme280.write = Bme280BoschWrapper::SPIWrite;
   bme280.read = Bme280BoschWrapper::SPIRead;
-  bme280.delay_ms = Bme280BoschWrapper::delaymsec;
+  bme280.delay_us = Bme280BoschWrapper::delaymsec;
 
   SPI.begin();
 }
 
-int8_t Bme280BoschWrapper::I2CRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
+int8_t Bme280BoschWrapper::I2CRead(uint8_t reg_addr, uint8_t *reg_data, uint32_t cnt, void *intf_ptr)
 {
+  uint8_t dev_addr = *((uint8_t *)intf_ptr);
 //  Serial.println("I2C_bus_read");
   int8_t ret = BME280_OK;
 
@@ -144,8 +156,9 @@ int8_t Bme280BoschWrapper::I2CRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *
   return ret;
 }
 
-int8_t Bme280BoschWrapper::I2CWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
+int8_t Bme280BoschWrapper::I2CWrite(uint8_t reg_addr, const uint8_t *reg_data, uint32_t cnt, void *intf_ptr)
 {  
+  uint8_t dev_addr = *((uint8_t *)intf_ptr);
 //  Serial.println("I2C_bus_write");
   int8_t ret = BME280_OK;
 
@@ -160,7 +173,7 @@ int8_t Bme280BoschWrapper::I2CWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t 
   return ret;
 }
 
-int8_t Bme280BoschWrapper::SPIRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
+int8_t Bme280BoschWrapper::SPIRead(uint8_t reg_addr, uint8_t *reg_data, uint32_t cnt, void *intf_ptr)
 {
 //  Serial.println("SPI_bus_read");
   int32_t ret = BME280_OK;
@@ -186,7 +199,7 @@ int8_t Bme280BoschWrapper::SPIRead(uint8_t dev_addr, uint8_t reg_addr, uint8_t *
   return ret;
 }
 
-int8_t Bme280BoschWrapper::SPIWrite(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t cnt)
+int8_t Bme280BoschWrapper::SPIWrite(uint8_t reg_addr, const uint8_t *reg_data, uint32_t cnt, void *intf_ptr)
 {
 //  Serial.println("SPI_bus_write");
   int8_t ret = BME280_OK;
