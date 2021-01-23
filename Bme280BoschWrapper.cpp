@@ -60,7 +60,7 @@ bool Bme280BoschWrapper::measure()
   {
     setSensorSettings();
     uint32_t tmpDelay = bme280_cal_meas_delay(&(bme280.settings));
-    Bme280BoschWrapper::delaymsec(tmpDelay);
+    delay(tmpDelay);
     ret += bme280_get_sensor_data(BME280_PRESS | BME280_HUM | BME280_TEMP, &comp_data, &bme280);
   }
   else
@@ -103,7 +103,7 @@ void Bme280BoschWrapper::I2CInit()
   bme280.intf = BME280_I2C_INTF;
   bme280.write = Bme280BoschWrapper::I2CWrite;
   bme280.read = Bme280BoschWrapper::I2CRead;
-  bme280.delay_us = Bme280BoschWrapper::delaymsec;
+  bme280.delay_us = Bme280BoschWrapper::delayusec;
 
   Wire.begin();
 }
@@ -113,7 +113,7 @@ void Bme280BoschWrapper::SPIInit()
   bme280.intf = BME280_SPI_INTF;
   bme280.write = Bme280BoschWrapper::SPIWrite;
   bme280.read = Bme280BoschWrapper::SPIRead;
-  bme280.delay_us = Bme280BoschWrapper::delaymsec;
+  bme280.delay_us = Bme280BoschWrapper::delayusec;
 
   SPI.begin();
 }
@@ -226,9 +226,9 @@ int8_t Bme280BoschWrapper::SPIWrite(uint8_t reg_addr, const uint8_t *reg_data, u
   return ret;
 }
 
-void Bme280BoschWrapper::delaymsec(uint32_t msec)
+void Bme280BoschWrapper::delayusec(uint32_t period, void *intf_ptr)
 {
-  delay(msec);
+  delayMicroseconds(period);
 }
 
 int8_t Bme280BoschWrapper::setSensorSettings()
